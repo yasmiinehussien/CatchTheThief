@@ -1491,11 +1491,109 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1532250471}
   m_CullTransparentMesh: 1
+--- !u!21 &1554436907
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: road-street_mat (Instance)
+  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BumpScale: 1
+    - _Cutoff: 0.5
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 0
+    - _GlossMapScale: 1
+    - _Glossiness: 0.29500002
+    - _GlossyReflections: 1
+    - _Metallic: 0
+    - _Mode: 0
+    - _OcclusionStrength: 1
+    - _Parallax: 0.02
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
+    - _UVSec: 0
+    - _ZWrite: 1
+    m_Colors:
+    - _Color: {r: 0.27666014, g: 0.27666014, b: 0.27666014, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1640419894 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6613106232626436959, guid: 3d4ce69a62deb9343a4f72ec5bb988dc, type: 3}
   m_PrefabInstance: {fileID: 4061796296053533926}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1640419899
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1640419894}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a43078c65117dc14984f31c13f1ea87c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapTile
+  playerTag: Player
+  timePenalty: 10
+  flashColor: {r: 1, g: 0, b: 0, a: 0.5}
+  flashDuration: 0.5
 --- !u!1 &1682683757
 GameObject:
   m_ObjectHideFlags: 0
@@ -1836,9 +1934,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1771777085}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1f359f9841b357e4cacc5fba8e2b3790, type: 3}
+  m_Script: {fileID: 11500000, guid: a2222fc656344574faf8af10722dc3aa, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ChestTester
+  m_EditorClassIdentifier: Assembly-CSharp::GameTimer
+  duration: 60
+  timerText: {fileID: 1044735793}
+  penaltyColor: {r: 1, g: 0, b: 0, a: 1}
+  penaltyFlashDuration: 0.5
+  onTimeUp:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1867788974
 GameObject:
   m_ObjectHideFlags: 0
@@ -2187,7 +2292,7 @@ PrefabInstance:
     - target: {fileID: 6480255039457633247, guid: 3d4ce69a62deb9343a4f72ec5bb988dc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 24cfa90132de74034926755088b5ad3a, type: 2}
+      objectReference: {fileID: 1554436907}
     - target: {fileID: 6613106232626436959, guid: 3d4ce69a62deb9343a4f72ec5bb988dc, type: 3}
       propertyPath: m_Name
       value: RoadTile
@@ -2235,7 +2340,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6613106232626436959, guid: 3d4ce69a62deb9343a4f72ec5bb988dc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1640419899}
   m_SourcePrefab: {fileID: 100100000, guid: 3d4ce69a62deb9343a4f72ec5bb988dc, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
