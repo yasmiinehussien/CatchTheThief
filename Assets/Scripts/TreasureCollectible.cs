@@ -7,16 +7,20 @@ public class TreasureCollectible : MonoBehaviour
     [SerializeField] private GameObject closedVisual;
     [SerializeField] private GameObject openVisual;
     [SerializeField] private GameObject[] extraOpenVisuals;
-    [SerializeField] private AudioClip openSfx;
+    [SerializeField] private string sfxResourceName = "TreasureCollect";
     [SerializeField] private float destroyDelay = 0.8f;
 
     private TreasureManager manager;
     private bool collected;
     private Collider col;
+    private AudioClip openSfx;
 
     public void Initialize(TreasureManager treasureManager)
     {
         manager = treasureManager;
+        openSfx = Resources.Load<AudioClip>(sfxResourceName);
+        if (openSfx == null) Debug.LogWarning($"[TreasureCollectible] Could not load SFX '{sfxResourceName}' from Resources.");
+        else Debug.Log($"[TreasureCollectible] SFX '{sfxResourceName}' loaded OK.");
         col = GetComponent<Collider>();
         if (col == null) col = gameObject.AddComponent<BoxCollider>();
         col.isTrigger = true;
@@ -57,7 +61,11 @@ public class TreasureCollectible : MonoBehaviour
             foreach (var extra in extraOpenVisuals)
                 if (extra != null) extra.SetActive(true);
 
-        if (openSfx != null) AudioSource.PlayClipAtPoint(openSfx, transform.position);
+        if (openSfx != null)
+        {
+            var listenerPos = Camera.main != null ? Camera.main.transform.position : transform.position;
+            AudioSource.PlayClipAtPoint(openSfx, listenerPos);
+        }
 
         yield return new WaitForSeconds(destroyDelay);
         Destroy(gameObject);
