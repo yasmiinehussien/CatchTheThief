@@ -16,11 +16,8 @@ public class TrapTile : MonoBehaviour
     {
         timer = FindAnyObjectByType<GameTimer>();
         trapSfx = Resources.Load<AudioClip>(sfxResourceName);
-        if (trapSfx == null) Debug.LogWarning($"[TrapTile] Could not load SFX '{sfxResourceName}' from Resources.");
-        else Debug.Log($"[TrapTile] SFX '{sfxResourceName}' loaded OK.");
 
-        var col = GetComponent<Collider>();
-        if (col == null) col = gameObject.AddComponent<BoxCollider>();
+        var col = GetComponent<BoxCollider>() ?? gameObject.AddComponent<BoxCollider>();
         col.isTrigger = true;
     }
 

@@ -19,8 +19,6 @@ public class TreasureCollectible : MonoBehaviour
     {
         manager = treasureManager;
         openSfx = Resources.Load<AudioClip>(sfxResourceName);
-        if (openSfx == null) Debug.LogWarning($"[TreasureCollectible] Could not load SFX '{sfxResourceName}' from Resources.");
-        else Debug.Log($"[TreasureCollectible] SFX '{sfxResourceName}' loaded OK.");
         col = GetComponent<Collider>();
         if (col == null) col = gameObject.AddComponent<BoxCollider>();
         col.isTrigger = true;
