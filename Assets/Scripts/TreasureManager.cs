@@ -345,4 +345,25 @@ public class TreasureManager : MonoBehaviour
             (list[index], list[swapIndex]) = (list[swapIndex], list[index]);
         }
     }
+
+    // Called by TrapManager to get all zone candidate positions
+    public List<Vector2Int> GetAllCandidatePositions()
+    {
+        List<Vector2Int> all = new List<Vector2Int>();
+        if (zones == null) return all;
+        foreach (ZoneCandidates zone in zones)
+        {
+            if (zone == null || zone.candidateCells == null) continue;
+            all.AddRange(zone.candidateCells);
+        }
+        return all;
+    }
+    
+    //  // Called by TrapManager when Memory Flash is used (costs flashCost fragments)
+    public void ConsumeFlashCharge(int cost)
+    {
+        collectedCount = Mathf.Max(0, collectedCount - cost);
+        flashValue = Mathf.Clamp01(flashValue - flashIncreasePerTreasure * cost);
+        PushHud();
+    }
 }
