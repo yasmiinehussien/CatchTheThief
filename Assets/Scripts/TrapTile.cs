@@ -1,4 +1,12 @@
-﻿using System.Collections;
+﻿// TrapTile.cs  (UPDATED VERSION)
+// Place this in: Assets/Scripts/Gameplay/
+//
+// CHANGES FROM ORIGINAL:
+//   Added: reports its grid position to TrapManager when triggered.
+//   This lets TrapManager remove it from the A* target list.
+//   Everything else is identical to the original TrapTile.cs.
+
+using System.Collections;
 using UnityEngine;
 
 public class TrapTile : MonoBehaviour
@@ -9,12 +17,17 @@ public class TrapTile : MonoBehaviour
     [SerializeField] private float flashDuration = 0.5f;
     [SerializeField] private string sfxResourceName = "TrapHit";
 
+    // ── NEW: grid position so TrapManager can remove us from A* list ──
+    [HideInInspector] public Vector2Int gridCell; // Set by TrapManager after spawning
+
     private GameTimer timer;
+    private TrapManager trapManager;
     private AudioClip trapSfx;
 
     private void Start()
     {
         timer = FindAnyObjectByType<GameTimer>();
+        trapManager = FindAnyObjectByType<TrapManager>();
         trapSfx = Resources.Load<AudioClip>(sfxResourceName);
 
         var col = GetComponent<BoxCollider>() ?? gameObject.AddComponent<BoxCollider>();
@@ -29,16 +42,21 @@ public class TrapTile : MonoBehaviour
 
     private IEnumerator Trigger()
     {
-        // Disable immediately so it can never trigger again
-        enabled = false;
+        enabled = false; // Disable so it can never trigger again
 
         if (trapSfx != null)
         {
             var listenerPos = Camera.main != null ? Camera.main.transform.position : transform.position;
             AudioSource.PlayClipAtPoint(trapSfx, listenerPos);
         }
+
+        // Subtract time from the timer
         timer?.SubtractTime(timePenalty);
 
+        // ── NEW: notify TrapManager this trap was triggered ──
+        trapManager?.OnTrapTriggered(gridCell);
+
+        // Flash red
         var renderer = GetComponentInChildren<Renderer>();
         if (renderer != null)
         {

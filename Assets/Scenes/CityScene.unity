@@ -2204,6 +2204,70 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1946306001}
   m_CullTransparentMesh: 1
+--- !u!1 &2030297450
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2030297453}
+  - component: {fileID: 2030297452}
+  - component: {fileID: 2030297451}
+  m_Layer: 0
+  m_Name: AIManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2030297451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2030297450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fa5ac57dc2b77e468064cb1453f76b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapManager
+  trapPrefab: {fileID: 1752242709596526260, guid: 395ba544253319b4c9169eda9ecbd193, type: 3}
+  treasureManager: {fileID: 1771777087}
+  playerTransform: {fileID: 0}
+  trapWorldY: 0.02
+  revealDuration: 2
+  revealMaterial: {fileID: 2100000, guid: c1cec08acefcc33488e8fe62215739b8, type: 2}
+  flashCost: 2
+--- !u!114 &2030297452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2030297450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 391cb9bc72f92ad4e91b1e0bb80e3391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pathfinding
+--- !u!4 &2030297453
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2030297450}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1636488262609563701
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2338,3 +2402,4 @@ SceneRoots:
   - {fileID: 1685305882}
   - {fileID: 1682683761}
   - {fileID: 1771777088}
+  - {fileID: 2030297453}
