@@ -112,10 +112,8 @@ public class TrapManager : MonoBehaviour
 
     private IEnumerator PlaceTrapsAfterFragments()
     {
-        // Wait 2 frames to let TreasureManager.Start() finish spawning
-        yield return null;
-        yield return null;
-
+        // Wait until TreasureManager has finished spawning all fragments
+        yield return new WaitUntil(() => treasureManager.SpawnedCount > 0);
         PlaceTraps();
     }
 
@@ -178,11 +176,8 @@ public class TrapManager : MonoBehaviour
 
         if (treasureManager == null) return positions;
 
-        // Access zones via reflection-friendly public method
         // TreasureManager exposes its zones as a serialized list.
-        // We read them via a helper method we'll add to TreasureManager,
-        // OR we call the zone candidates directly (add GetZoneCandidates() to TreasureManager).
-        List<Vector2Int> candidates = treasureManager.GetAllCandidatePositions();
+        List<Vector2Int> candidates = treasureManager.GetSpawnedPositions();
         if (candidates != null)
             positions.AddRange(candidates);
 

@@ -347,18 +347,34 @@ public class TreasureManager : MonoBehaviour
     }
 
     // Called by TrapManager to get all zone candidate positions
-    public List<Vector2Int> GetAllCandidatePositions()
+    //public List<Vector2Int> GetAllCandidatePositions()
+    //{
+    //    List<Vector2Int> all = new List<Vector2Int>();
+    //    if (zones == null) return all;
+    //    foreach (ZoneCandidates zone in zones)
+    //    {
+    //        if (zone == null || zone.candidateCells == null) continue;
+    //        all.AddRange(zone.candidateCells);
+    //    }
+    //    return all;
+    //}
+
+
+    public List<Vector2Int> GetSpawnedPositions()
     {
-        List<Vector2Int> all = new List<Vector2Int>();
-        if (zones == null) return all;
-        foreach (ZoneCandidates zone in zones)
+        List<Vector2Int> spawned = new List<Vector2Int>();
+        foreach (TreasureCollectible t in activeTreasures)
         {
-            if (zone == null || zone.candidateCells == null) continue;
-            all.AddRange(zone.candidateCells);
+            if (t == null) continue;
+            Vector3 pos = t.transform.position;
+            spawned.Add(new Vector2Int(
+                Mathf.RoundToInt(pos.x),
+                Mathf.RoundToInt(pos.z)
+            ));
         }
-        return all;
+        return spawned;
     }
-    
+
     //  // Called by TrapManager when Memory Flash is used (costs flashCost fragments)
     public void ConsumeFlashCharge(int cost)
     {
