@@ -33,7 +33,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem;
 public class TrapManager : MonoBehaviour
 {
     // ── Inspector References ─────────────────────────────────────
@@ -99,7 +100,7 @@ public class TrapManager : MonoBehaviour
     private void Update()
     {
         // ── Memory Flash Input (Space bar) ───────────────────────
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             TryActivateMemoryFlash();
         }
@@ -111,10 +112,8 @@ public class TrapManager : MonoBehaviour
 
     private IEnumerator PlaceTrapsAfterFragments()
     {
-        // Wait 2 frames to let TreasureManager.Start() finish spawning
-        yield return null;
-        yield return null;
-
+        // Wait until TreasureManager has finished spawning all fragments
+        yield return new WaitUntil(() => treasureManager.SpawnedCount > 0);
         PlaceTraps();
     }
 
@@ -177,11 +176,8 @@ public class TrapManager : MonoBehaviour
 
         if (treasureManager == null) return positions;
 
-        // Access zones via reflection-friendly public method
         // TreasureManager exposes its zones as a serialized list.
-        // We read them via a helper method we'll add to TreasureManager,
-        // OR we call the zone candidates directly (add GetZoneCandidates() to TreasureManager).
-        List<Vector2Int> candidates = treasureManager.GetAllCandidatePositions();
+        List<Vector2Int> candidates = treasureManager.GetSpawnedPositions();
         if (candidates != null)
             positions.AddRange(candidates);
 
@@ -285,6 +281,11 @@ public class TrapManager : MonoBehaviour
 
     private void TryActivateMemoryFlash()
     {
+        if (playerTransform == null)
+        {
+            Debug.LogWarning("TrapManager: Player not assigned yet.");
+            return;
+        }
         if (flashInProgress)
         {
             Debug.Log("Memory Flash already in progress.");
