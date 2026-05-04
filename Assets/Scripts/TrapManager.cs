@@ -33,7 +33,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem;
 public class TrapManager : MonoBehaviour
 {
     // ── Inspector References ─────────────────────────────────────
@@ -99,7 +100,7 @@ public class TrapManager : MonoBehaviour
     private void Update()
     {
         // ── Memory Flash Input (Space bar) ───────────────────────
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             TryActivateMemoryFlash();
         }
@@ -285,6 +286,11 @@ public class TrapManager : MonoBehaviour
 
     private void TryActivateMemoryFlash()
     {
+        if (playerTransform == null)
+        {
+            Debug.LogWarning("TrapManager: Player not assigned yet.");
+            return;
+        }
         if (flashInProgress)
         {
             Debug.Log("Memory Flash already in progress.");
