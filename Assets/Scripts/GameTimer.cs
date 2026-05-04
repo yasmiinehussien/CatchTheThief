@@ -15,6 +15,7 @@ public class GameTimer : MonoBehaviour
     private bool running;
     private Color normalColor = Color.white;
     private Coroutine flashRoutine;
+    private TimeUpAlert timeUpAlert;
 
     private void Start()
     {
@@ -23,9 +24,8 @@ public class GameTimer : MonoBehaviour
             var go = GameObject.Find("TimerText");
             if (go != null) timerText = go.GetComponent<TMP_Text>();
         }
-
         if (timerText != null) normalColor = timerText.color;
-
+        timeUpAlert = FindAnyObjectByType<TimeUpAlert>();
         remaining = duration;
         running = true;
         Render();
@@ -34,18 +34,17 @@ public class GameTimer : MonoBehaviour
     private void Update()
     {
         if (!running) return;
-
         remaining -= Time.deltaTime;
-
         if (remaining <= 0f)
         {
             remaining = 0f;
             running = false;
             Render();
             onTimeUp?.Invoke();
+            if (timeUpAlert != null)
+                timeUpAlert.ShowAlert();
             return;
         }
-
         Render();
     }
 
@@ -64,7 +63,6 @@ public class GameTimer : MonoBehaviour
     {
         remaining = Mathf.Max(0f, remaining - seconds);
         Render();
-
         if (timerText != null)
         {
             if (flashRoutine != null) StopCoroutine(flashRoutine);

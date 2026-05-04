@@ -279,34 +279,25 @@ public class TrapManager : MonoBehaviour
     //  AI FEATURE 2: MEMORY FLASH — A* TO NEAREST TRAP
     // ════════════════════════════════════════════════════════════
 
+
     private void TryActivateMemoryFlash()
     {
-        if (playerTransform == null)
-        {
-            Debug.LogWarning("TrapManager: Player not assigned yet.");
-            return;
-        }
-        if (flashInProgress)
-        {
-            Debug.Log("Memory Flash already in progress.");
-            return;
-        }
+        if (flashInProgress) return;
 
-        // Check: player must have collected >= 2 fragments (flashValue >= 1.0 means 2 collected)
-        // TreasureManager uses flashIncreasePerTreasure = 0.5 → 2 fragments = flashValue 1.0
-        if (treasureManager == null)
-        {
-            Debug.LogWarning("TrapManager: TreasureManager reference missing.");
-            return;
-        }
+        if (treasureManager == null) return;
 
         int collected = treasureManager.CollectedCount;
         if (collected < flashCost)
         {
-            // Shahd's script  to show "Not enough memories!" message, shahd should handle
-            //MemoryFlashUI ui = memoryFlashUI ?? FindAnyObjectByType<MemoryFlashUI>();
-            //ui?.ShowNotEnoughMessage();
             Debug.Log($"Memory Flash blocked: only {collected}/{flashCost} fragments collected.");
+            var warning = FindAnyObjectByType<MemoryWarningAlert>();
+            if (warning != null) warning.ShowWarning();
+            return;
+        }
+
+        if (playerTransform == null)
+        {
+            Debug.LogWarning("TrapManager: Player not assigned yet.");
             return;
         }
 
@@ -316,10 +307,8 @@ public class TrapManager : MonoBehaviour
             return;
         }
 
-        // Get thief grid position
         Vector2Int thiefCell = WorldToGrid(playerTransform.position);
 
-        // Run A* to find nearest trap
         if (pathfinding == null)
             pathfinding = FindAnyObjectByType<Pathfinding>();
 
@@ -331,12 +320,70 @@ public class TrapManager : MonoBehaviour
             return;
         }
 
-        // Deduct flash cost from TreasureManager
         treasureManager.ConsumeFlashCharge(flashCost);
-
-        // Reveal the trap tile
         StartCoroutine(RevealTrap(new Vector2Int(nearestTrap.x, nearestTrap.z)));
     }
+
+    //private void TryActivateMemoryFlash()
+    //{
+    //    if (playerTransform == null)
+    //    {
+    //        Debug.LogWarning("TrapManager: Player not assigned yet.");
+    //        return;
+    //    }
+    //    if (flashInProgress)
+    //    {
+    //        Debug.Log("Memory Flash already in progress.");
+    //        return;
+    //    }
+
+    //    // Check: player must have collected >= 2 fragments (flashValue >= 1.0 means 2 collected)
+    //    // TreasureManager uses flashIncreasePerTreasure = 0.5 → 2 fragments = flashValue 1.0
+    //    if (treasureManager == null)
+    //    {
+    //        Debug.LogWarning("TrapManager: TreasureManager reference missing.");
+    //        return;
+    //    }
+
+    //    int collected = treasureManager.CollectedCount;
+    //    if (collected < flashCost)
+    //    {
+    //        Debug.Log($"Memory Flash blocked: only {collected}/{flashCost} fragments collected.");
+    //        var warning = FindAnyObjectByType<MemoryWarningAlert>();
+    //        if (warning != null) warning.ShowWarning();
+    //        return;
+    //    }
+
+    //    if (activeTrapPositions.Count == 0)
+    //    {
+    //        Debug.Log("Memory Flash: No traps left to reveal.");
+    //        return;
+    //    }
+
+    //    // Get thief grid position
+    //    Vector2Int thiefCell = WorldToGrid(playerTransform.position);
+
+    //    // Run A* to find nearest trap
+    //    if (pathfinding == null)
+    //        pathfinding = FindAnyObjectByType<Pathfinding>();
+
+    //    Node nearestTrap = pathfinding.FindNearestTrap(thiefCell.x, thiefCell.y, activeTrapPositions);
+
+    //    if (nearestTrap == null)
+    //    {
+    //        Debug.LogWarning("Memory Flash: A* could not reach any trap from current position.");
+    //        return;
+    //    }
+
+    //    // Deduct flash cost from TreasureManager
+    //    treasureManager.ConsumeFlashCharge(flashCost);
+
+    //    // Reveal the trap tile
+    //    StartCoroutine(RevealTrap(new Vector2Int(nearestTrap.x, nearestTrap.z)));
+    //}
+
+
+
 
     /// <summary>
     /// Reveals the trap tile visually for `revealDuration` seconds, then hides it again.

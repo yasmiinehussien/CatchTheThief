@@ -69,6 +69,7 @@ public class TreasureManager : MonoBehaviour
 
     private void Start()
     {
+        
         SpawnTreasuresForRun();
         PushHud();
     }
