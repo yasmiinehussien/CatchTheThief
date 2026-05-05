@@ -72,6 +72,9 @@ public class TreasureManager : MonoBehaviour
         
         SpawnTreasuresForRun();
         PushHud();
+        //for (int i = 0; i < 3; i++) collectedCount++;
+        //flashValue = 1f;
+        //PushHud();
     }
 
     public void SpawnTreasuresForRun()

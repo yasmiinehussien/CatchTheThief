@@ -1,7 +1,6 @@
 ﻿// TrapManager.cs
 // Place this in: Assets/Scripts/AI/
-//
-// ══════════════════════════════════════════════════════════════
+//══════════════════════════════════════════════════════════════
 //  WHAT THIS SCRIPT DOES (Your AI Task — Member 3):
 //
 //  AI Feature 1 — Smart Trap Placement
@@ -34,7 +33,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem;
+
 public class TrapManager : MonoBehaviour
 {
     // ── Inspector References ─────────────────────────────────────
@@ -48,8 +47,8 @@ public class TrapManager : MonoBehaviour
     [Tooltip("The Thief (Player) transform — used to get grid position for A*.")]
     [SerializeField] private Transform playerTransform;
 
-    //[Tooltip("UI script that plays the 2D white screen flash.")]
-    //[SerializeField] private MemoryFlashUI memoryFlashUI;
+    // [Tooltip("UI script that plays the 2D white screen flash.")]
+    // [SerializeField] private MemoryFlashUI memoryFlashUI;
 
     [Header("Trap Settings")]
     [Tooltip("World Y height for spawned traps (should match road tile Y).")]
@@ -65,6 +64,23 @@ public class TrapManager : MonoBehaviour
     [Tooltip("How many fragment charges are consumed per Memory Flash use (default 2).")]
     [SerializeField, Min(1)] private int flashCost = 2;
 
+    // ──  Detective & Glow ────────────────────────────────────
+    [Header("Detective & Glow")]
+    [Tooltip("Drag the Detective sprite from Assets/Sprites here.")]
+    [SerializeField] private Sprite detectiveSprite;
+
+    [Tooltip("How high above the trap tile the detective floats.")]
+    [SerializeField] private float detectiveHeightOffset = 0.6f;
+
+    [Tooltip("Color of the point light glow on revealed trap (orange/red).")]
+    [SerializeField] private Color glowColor = new Color(1f, 0.4f, 0f);
+
+    [Tooltip("Intensity of the point light glow.")]
+    [SerializeField] private float glowIntensity = 3f;
+
+    [Tooltip("Range of the point light glow.")]
+    [SerializeField] private float glowRange = 2f;
+
     // ── Private State ────────────────────────────────────────────
     private GridManager gridManager;
     private Pathfinding pathfinding;
@@ -77,8 +93,23 @@ public class TrapManager : MonoBehaviour
 
     private bool flashInProgress = false;
 
+    // Runtime objects created during reveal — destroyed after
+    private GameObject detectiveObj;
+    private GameObject glowLightObj;
+
     // ── Unity Lifecycle ──────────────────────────────────────────
-    private void Awake()
+    private void Start()
+{
+    gridManager = GridManager.Instance;
+    pathfinding = FindAnyObjectByType<Pathfinding>();
+
+    if (treasureManager == null)
+        treasureManager = FindAnyObjectByType<TreasureManager>();
+
+    // Delay so GridManager.BuildGrid() finishes first
+    StartCoroutine(PlaceTrapsAfterFragments());
+}
+    /*private void Awake()
     {
         gridManager = GridManager.Instance;
         pathfinding = FindAnyObjectByType<Pathfinding>();
@@ -86,16 +117,16 @@ public class TrapManager : MonoBehaviour
         if (treasureManager == null)
             treasureManager = FindAnyObjectByType<TreasureManager>();
 
-        //Shahd should handle
-        //if (memoryFlashUI == null)
-        //    memoryFlashUI = FindAnyObjectByType<MemoryFlashUI>();
-    }
+        // Shahd should handle:
+        // if (memoryFlashUI == null)
+        //     memoryFlashUI = FindAnyObjectByType<MemoryFlashUI>();
+    }*/
 
-    private void Start()
-    {
+    //private void Start()
+    //{
         // Wait one frame so TreasureManager has finished spawning fragments
-        StartCoroutine(PlaceTrapsAfterFragments());
-    }
+      //  StartCoroutine(PlaceTrapsAfterFragments());
+    //}
 
     private void Update()
     {
@@ -109,18 +140,25 @@ public class TrapManager : MonoBehaviour
     // ════════════════════════════════════════════════════════════
     //  AI FEATURE 1: SMART TRAP PLACEMENT
     // ════════════════════════════════════════════════════════════
-
     private IEnumerator PlaceTrapsAfterFragments()
-    {
-        // Wait until TreasureManager has finished spawning all fragments
-        yield return new WaitUntil(() => treasureManager.SpawnedCount > 0);
-        PlaceTraps();
-    }
+{
+    // Wait for BOTH GridManager and TreasureManager to be ready
+    yield return new WaitUntil(() => 
+        GridManager.Instance != null && 
+        GridManager.Instance.grid != null &&
+        treasureManager != null &&
+        treasureManager.SpawnedCount > 0);
 
-    /// <summary>
-    /// Reads fragment positions from TreasureManager zones.
-    /// For each fragment, finds the nearest adjacent road tile and spawns a trap there.
-    /// </summary>
+    gridManager = GridManager.Instance; // re-grab after waiting
+    PlaceTraps();
+}
+
+    //private IEnumerator PlaceTrapsAfterFragments()
+    //{
+    //    yield return new WaitUntil(() => treasureManager.SpawnedCount > 0);
+    //    PlaceTraps();
+    //}
+
     private void PlaceTraps()
     {
         if (gridManager == null || gridManager.grid == null)
@@ -135,7 +173,6 @@ public class TrapManager : MonoBehaviour
             return;
         }
 
-        // Collect all fragment candidate positions from TreasureManager zones
         List<Vector2Int> fragmentPositions = GetFragmentPositions();
 
         if (fragmentPositions == null || fragmentPositions.Count == 0)
@@ -165,18 +202,11 @@ public class TrapManager : MonoBehaviour
         Debug.Log($"TrapManager: Placed {trapsPlaced} traps from {fragmentPositions.Count} fragments.");
     }
 
-    /// <summary>
-    /// Gets ALL candidate fragment positions from TreasureManager's zone data.
-    /// This includes candidates that weren't selected this run (to ensure enough traps).
-    /// If you want only SPAWNED fragments, swap to reading active objects instead.
-    /// </summary>
     private List<Vector2Int> GetFragmentPositions()
     {
         List<Vector2Int> positions = new List<Vector2Int>();
-
         if (treasureManager == null) return positions;
 
-        // TreasureManager exposes its zones as a serialized list.
         List<Vector2Int> candidates = treasureManager.GetSpawnedPositions();
         if (candidates != null)
             positions.AddRange(candidates);
@@ -184,10 +214,6 @@ public class TrapManager : MonoBehaviour
         return positions;
     }
 
-    /// <summary>
-    /// Finds the nearest walkable road tile adjacent (4-directional) to the given cell.
-    /// Skips cells already used for another trap.
-    /// </summary>
     private Vector2Int? FindNearestAdjacentRoadTile(Vector2Int origin, HashSet<Vector2Int> exclude)
     {
         int[] dx = { 0, 0, 1, -1 };
@@ -199,24 +225,20 @@ public class TrapManager : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             int nx = origin.x + dx[i];
-            int nz = origin.y + dz[i];  // Vector2Int.y = grid Z
+            int nz = origin.y + dz[i];
 
             if (nx < 0 || nx >= cols || nz < 0 || nz >= rows) continue;
-            if (gridManager.mapLayout[nz, nx] != 1) continue;  // must be road
+            if (gridManager.mapLayout[nz, nx] != 1) continue;
 
             Vector2Int candidate = new Vector2Int(nx, nz);
-            if (exclude.Contains(candidate)) continue;          // already has a trap
+            if (exclude.Contains(candidate)) continue;
 
             return candidate;
         }
 
-        // No immediate neighbour — search up to radius 2 (BFS)
         return BFSNearestRoad(origin, exclude, 2);
     }
 
-    /// <summary>
-    /// BFS fallback: searches up to `maxRadius` tiles away for a road tile.
-    /// </summary>
     private Vector2Int? BFSNearestRoad(Vector2Int origin, HashSet<Vector2Int> exclude, int maxRadius)
     {
         Queue<Vector2Int> queue = new Queue<Vector2Int>();
@@ -225,7 +247,6 @@ public class TrapManager : MonoBehaviour
 
         int rows = gridManager.mapLayout.GetLength(0);
         int cols = gridManager.mapLayout.GetLength(1);
-
         int[] dx = { 0, 0, 1, -1 };
         int[] dz = { 1, -1, 0, 0 };
 
@@ -255,9 +276,6 @@ public class TrapManager : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// Spawns a trap GameObject at the given grid cell. Trap is hidden (looks like road).
-    /// </summary>
     private void SpawnTrap(Vector2Int cell)
     {
         Vector3 worldPos = gridManager.GridToWorld(cell.x, cell.y);
@@ -266,9 +284,17 @@ public class TrapManager : MonoBehaviour
         GameObject trapGO = Instantiate(trapPrefab, worldPos, Quaternion.identity, transform);
         trapGO.name = $"Trap_{cell.x}_{cell.y}";
 
+        // Tell TrapTile its own grid position (used when triggered)
+        TrapTile tile = trapGO.GetComponent<TrapTile>();
+        if (tile != null) tile.gridCell = cell;
+
         // Mark node in grid
         Node node = gridManager.grid[cell.x, cell.y];
         if (node != null) node.hasTrap = true;
+
+        // Hide the renderer — trap is invisible until revealed
+        Renderer rend = trapGO.GetComponentInChildren<Renderer>();
+        if (rend != null) rend.enabled = false;
 
         // Store references
         trapObjects[cell] = trapGO;
@@ -279,10 +305,15 @@ public class TrapManager : MonoBehaviour
     //  AI FEATURE 2: MEMORY FLASH — A* TO NEAREST TRAP
     // ════════════════════════════════════════════════════════════
 
-
     private void TryActivateMemoryFlash()
     {
-        if (flashInProgress) return;
+            if (flashInProgress)
+    {
+        Debug.Log("Flash already in progress — ignoring input.");
+        return;
+    }
+
+   
 
         if (treasureManager == null) return;
 
@@ -290,6 +321,7 @@ public class TrapManager : MonoBehaviour
         if (collected < flashCost)
         {
             Debug.Log($"Memory Flash blocked: only {collected}/{flashCost} fragments collected.");
+            // Show "not enough" warning — Shahd handles this UI
             var warning = FindAnyObjectByType<MemoryWarningAlert>();
             if (warning != null) warning.ShowWarning();
             return;
@@ -307,7 +339,11 @@ public class TrapManager : MonoBehaviour
             return;
         }
 
-        Vector2Int thiefCell = WorldToGrid(playerTransform.position);
+         Vector2Int thiefCell = WorldToGrid(playerTransform.position);
+         // TEMP: hardcode start position while no player exists
+         //Vector2Int thiefCell = playerTransform != null 
+         //? WorldToGrid(playerTransform.position) 
+         //: new Vector2Int(0, 0);
 
         if (pathfinding == null)
             pathfinding = FindAnyObjectByType<Pathfinding>();
@@ -320,81 +356,26 @@ public class TrapManager : MonoBehaviour
             return;
         }
 
-        treasureManager.ConsumeFlashCharge(flashCost);
+        // Deduct charges
+        //treasureManager.ConsumeFlashCharge(flashCost);
+
+        // Reveal it
         StartCoroutine(RevealTrap(new Vector2Int(nearestTrap.x, nearestTrap.z)));
     }
 
-    //private void TryActivateMemoryFlash()
-    //{
-    //    if (playerTransform == null)
-    //    {
-    //        Debug.LogWarning("TrapManager: Player not assigned yet.");
-    //        return;
-    //    }
-    //    if (flashInProgress)
-    //    {
-    //        Debug.Log("Memory Flash already in progress.");
-    //        return;
-    //    }
-
-    //    // Check: player must have collected >= 2 fragments (flashValue >= 1.0 means 2 collected)
-    //    // TreasureManager uses flashIncreasePerTreasure = 0.5 → 2 fragments = flashValue 1.0
-    //    if (treasureManager == null)
-    //    {
-    //        Debug.LogWarning("TrapManager: TreasureManager reference missing.");
-    //        return;
-    //    }
-
-    //    int collected = treasureManager.CollectedCount;
-    //    if (collected < flashCost)
-    //    {
-    //        Debug.Log($"Memory Flash blocked: only {collected}/{flashCost} fragments collected.");
-    //        var warning = FindAnyObjectByType<MemoryWarningAlert>();
-    //        if (warning != null) warning.ShowWarning();
-    //        return;
-    //    }
-
-    //    if (activeTrapPositions.Count == 0)
-    //    {
-    //        Debug.Log("Memory Flash: No traps left to reveal.");
-    //        return;
-    //    }
-
-    //    // Get thief grid position
-    //    Vector2Int thiefCell = WorldToGrid(playerTransform.position);
-
-    //    // Run A* to find nearest trap
-    //    if (pathfinding == null)
-    //        pathfinding = FindAnyObjectByType<Pathfinding>();
-
-    //    Node nearestTrap = pathfinding.FindNearestTrap(thiefCell.x, thiefCell.y, activeTrapPositions);
-
-    //    if (nearestTrap == null)
-    //    {
-    //        Debug.LogWarning("Memory Flash: A* could not reach any trap from current position.");
-    //        return;
-    //    }
-
-    //    // Deduct flash cost from TreasureManager
-    //    treasureManager.ConsumeFlashCharge(flashCost);
-
-    //    // Reveal the trap tile
-    //    StartCoroutine(RevealTrap(new Vector2Int(nearestTrap.x, nearestTrap.z)));
-    //}
-
-
-
-
     /// <summary>
-    /// Reveals the trap tile visually for `revealDuration` seconds, then hides it again.
-    /// Also triggers the 2D screen flash via MemoryFlashUI.
+    /// Reveals the nearest trap tile for revealDuration seconds:
+    ///   1. Swaps to glowing revealMaterial
+    ///   2. Spawns a Point Light above it (orange glow)
+    ///   3. Spawns the detective sprite floating above, facing the camera
+    ///   4. After 2 seconds — hides everything, destroys light + detective
     /// </summary>
-    private IEnumerator RevealTrap(Vector2Int trapCell)
+   private IEnumerator RevealTrap(Vector2Int trapCell)
     {
         flashInProgress = true;
 
-        // should be handled by Shahd 
-       // memoryFlashUI?.PlayScreenFlash();
+        // Shahd handles screen flash:
+        // memoryFlashUI?.PlayScreenFlash();
 
         if (!trapObjects.TryGetValue(trapCell, out GameObject trapGO) || trapGO == null)
         {
@@ -402,28 +383,98 @@ public class TrapManager : MonoBehaviour
             yield break;
         }
 
-        // Store original material and swap to reveal material (glowing red/orange)
+        // ── 1. GLOW MATERIAL ─────────────────────────────────────
         Renderer rend = trapGO.GetComponentInChildren<Renderer>();
         Material originalMat = null;
 
-        if (rend != null && revealMaterial != null)
+        if (rend != null)
         {
-            originalMat = rend.material;
-            rend.material = revealMaterial;
+            originalMat  = rend.material;
+            rend.enabled = true;
+            if (revealMaterial != null)
+                rend.material = revealMaterial;
         }
 
-        // Make trap temporarily visible (enable its renderer)
-        if (rend != null) rend.enabled = true;
+        // ── 2. POINT LIGHT above the trap ────────────────────────
+        glowLightObj = new GameObject("TrapGlowLight");
+        glowLightObj.transform.position = new Vector3(trapCell.x, trapWorldY + 0.8f, trapCell.y);
 
-        Debug.Log($"Memory Flash: Revealing trap at {trapCell} for {revealDuration} seconds.");
+        Light pointLight     = glowLightObj.AddComponent<Light>();
+        pointLight.type      = LightType.Point;
+        pointLight.color     = glowColor;
+        pointLight.intensity = glowIntensity;
+        pointLight.range     = glowRange;
+        pointLight.shadows   = LightShadows.None;
 
+        // ── 3. DETECTIVE SPRITE floating above the trap ──────────
+        detectiveObj = new GameObject("DetectiveMarker");
+        detectiveObj.transform.position = new Vector3(
+            trapCell.x + 1.5f,
+            trapWorldY + detectiveHeightOffset,
+            trapCell.y
+        );
+
+        SpriteRenderer sr    = detectiveObj.AddComponent<SpriteRenderer>();
+sr.sprite            = detectiveSprite;
+sr.sortingOrder      = 10;
+sr.drawMode          = SpriteDrawMode.Simple;  // no slicing, full image
+sr.flipX             = false;
+sr.flipY             = false;
+
+// Scale based on sprite's actual size so nothing gets cropped
+float spriteWidth    = detectiveSprite != null ? detectiveSprite.bounds.size.x : 1f;
+float spriteHeight   = detectiveSprite != null ? detectiveSprite.bounds.size.y : 1f;
+float desiredHeight  = 2f;  
+float scaleFactor    = desiredHeight / spriteHeight;
+
+detectiveObj.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+detectiveObj.AddComponent<FaceCamera>();
+
+        // ── 4. CHANGE SUN TO POINT LIGHT ─────────────────────────
+        GameObject sunObj = GameObject.Find("Sun");
+        if (sunObj != null)
+        {
+            Light sunLight = sunObj.GetComponent<Light>();
+            if (sunLight != null)
+            {
+                sunLight.type      = LightType.Point;
+                sunLight.range     = 25f;
+                sunLight.intensity = 3f;
+                sunLight.color     = new Color(1f, 0.95f, 0.8f);
+            }
+        }
+
+        Debug.Log($"Memory Flash: Revealing trap at {trapCell} for {revealDuration}s.");
+
+        // ── 5. WAIT ───────────────────────────────────────────────
         yield return new WaitForSeconds(revealDuration);
 
-        // Hide trap again
+        // Deduct fragments after reveal ends
+        treasureManager.ConsumeFlashCharge(flashCost);
+
+        // ── 6. HIDE TRAP + DETECTIVE + LIGHT ─────────────────────
         if (rend != null)
         {
             if (originalMat != null) rend.material = originalMat;
-            rend.enabled = false; // Hidden again — trap is still active
+            rend.enabled = false;
+        }
+
+        if (glowLightObj != null) Destroy(glowLightObj);
+        if (detectiveObj != null) Destroy(detectiveObj);
+
+        // ── 7. RESTORE SUN TO DIRECTIONAL ────────────────────────
+        GameObject sunObjAfter = GameObject.Find("Sun");
+        if (sunObjAfter != null)
+        {
+            Light sunLightAfter = sunObjAfter.GetComponent<Light>();
+            if (sunLightAfter != null)
+            {
+                sunLightAfter.type      = LightType.Directional;
+                sunLightAfter.intensity = 1f;
+                sunLightAfter.range     = 0f;
+                sunLightAfter.color     = Color.white;
+                Debug.Log("Sun restored to Directional.");
+            }
         }
 
         flashInProgress = false;
@@ -434,8 +485,8 @@ public class TrapManager : MonoBehaviour
     // ════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Called by TrapTile when the player steps on a trap.
-    /// Removes the trap from the active list so it won't be targeted by future Memory Flash.
+    /// Called by TrapTile when the player steps on it.
+    /// Removes the trap from the active list so Memory Flash won't target it again.
     /// </summary>
     public void OnTrapTriggered(Vector2Int cell)
     {
@@ -454,7 +505,6 @@ public class TrapManager : MonoBehaviour
 
     private Vector2Int WorldToGrid(Vector3 worldPos)
     {
-        // GridToWorld is just new Vector3(x, 0, z) so reverse is floor
         return new Vector2Int(Mathf.RoundToInt(worldPos.x), Mathf.RoundToInt(worldPos.z));
     }
 

@@ -49,10 +49,10 @@ public class GameTimer : MonoBehaviour
     }
 
     private void Render()
-    {
-        if (timerText != null)
-            timerText.text = Mathf.CeilToInt(remaining).ToString();
-    }
+{
+    if (timerText != null)
+        timerText.text = " " + Mathf.CeilToInt(remaining).ToString();
+}
 
     public void Stop() => running = false;
     public void Resume() => running = true;
