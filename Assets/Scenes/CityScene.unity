@@ -1014,11 +1014,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TrapManager
   trapPrefab: {fileID: 1752242709596526260, guid: 395ba544253319b4c9169eda9ecbd193, type: 3}
   treasureManager: {fileID: 1771777087}
-  playerTransform: {fileID: 0}
+  playerTransform: {fileID: 1129225326}
   trapWorldY: 0.02
   revealDuration: 2
   revealMaterial: {fileID: 2100000, guid: c1cec08acefcc33488e8fe62215739b8, type: 2}
-  flashCost: 2
+  flashCost: 3
   detectiveSprite: {fileID: 6786559162242959950, guid: c0cb6307e00f3c443a4e4c35a39adccc, type: 3}
   detectiveHeightOffset: 1
   glowColor: {r: 1, g: 0.4, b: 0, a: 1}
