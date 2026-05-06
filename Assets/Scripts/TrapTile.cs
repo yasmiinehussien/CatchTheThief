@@ -93,12 +93,14 @@ public class TrapTile : MonoBehaviour
             trapManager.OnTrapTriggered(gridCell);
         }
 
-        // 5. Visual Flash Logic
-        var renderer = GetComponent<Renderer>() ?? GetComponentInChildren<Renderer>();
-        if (renderer != null)
+        // 5. Visual Flash Logic — raycast down to find the road tile's renderer
+        Renderer roadRenderer = null;
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 2f))
+            roadRenderer = hit.collider.GetComponent<Renderer>() ?? hit.collider.GetComponentInChildren<Renderer>();
+
+        if (roadRenderer != null)
         {
-            renderer.enabled = true;
-            var mat = renderer.material;
+            var mat = roadRenderer.material;
             string colorProp = mat.HasProperty("_BaseColor") ? "_BaseColor" : "_Color";
             var original = mat.GetColor(colorProp);
             mat.SetColor(colorProp, flashColor);
