@@ -34,7 +34,9 @@ public class GameTimer : MonoBehaviour
     private void Update()
     {
         if (!running) return;
+
         remaining -= Time.deltaTime;
+
         if (remaining <= 0f)
         {
             remaining = 0f;
@@ -45,6 +47,7 @@ public class GameTimer : MonoBehaviour
                 timeUpAlert.ShowAlert();
             return;
         }
+
         Render();
     }
 

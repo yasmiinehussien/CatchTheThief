@@ -39,21 +39,21 @@ public class GridManager : MonoBehaviour
     //    C) x=8..11 z=6..7 (right-side maze, no bank connection)
     // ═══════════════════════════════════════════════════════
     public int[,] mapLayout = new int[,]
-    {
-        // x=  0  1  2  3  4  5  6  7  8  9 10 11
-        {      1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0 },  // z=0  start
-        {      1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0 },  // z=1
-        {      1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1 },  // z=2
-        {      1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1 },  // z=3  fake left spur + fake right
-        {      0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1 },  // z=4
-        {      0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1 },  // z=5  ← TRUE path corridor
-        {      0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1 },  // z=6  fake dead-end right
-        {      0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0 },  // z=7
-        {      0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0 },  // z=8
-        {      0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 },  // z=9
-        {      0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0 },  // z=10 true path → bank
-        {      0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },  // z=11 BANK at x=5
-    };
+{
+    // x=  0  1  2  3  4  5  6  7  8  9 10 11
+    {      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },  // z=0  Start (Full width)
+    {      1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1 },  // z=1  Small grass island
+    {      1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1 },  // z=2
+    {      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },  // z=3  Wide road
+    {      1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1 },  // z=4  Small grass block
+    {      1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1 },  // z=5  
+    {      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },  // z=6  Main Highway
+    {      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },  // z=7
+    {      1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1 },  // z=8  Upper island
+    {      1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1 },  // z=9
+    {      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },  // z=10 Pure road to bank
+    {      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },  // z=11 BANK (accessible from all sides)
+};
 
     void Awake() { Instance = this; }
     void Start() { BuildGrid(); }
@@ -96,7 +96,8 @@ public class GridManager : MonoBehaviour
         tile.transform.SetParent(transform);
         tile.transform.position = pos;
         tile.transform.localScale = new Vector3(0.1f, 1f, 0.1f);
-        Destroy(tile.GetComponent<Collider>());
+        if (!isRoad)
+            Destroy(tile.GetComponent<Collider>());
 
         Material mat = new Material(Shader.Find("Standard"));
         mat.SetFloat("_Glossiness", 0f);

@@ -1,24 +1,15 @@
-﻿// TrapTile.cs  (UPDATED VERSION)
-// Place this in: Assets/Scripts/Gameplay/
-//
-// CHANGES FROM ORIGINAL:
-//   Added: reports its grid position to TrapManager when triggered.
-//   This lets TrapManager remove it from the A* target list.
-//   Everything else is identical to the original TrapTile.cs.
-
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class TrapTile : MonoBehaviour
 {
     [SerializeField] private string playerTag = "Player";
     [SerializeField] private float timePenalty = 10f;
-    [SerializeField] private Color flashColor = new Color(1f, 0f, 0f, 0.5f);
+    [SerializeField] private Color flashColor = new Color(1f, 0f, 0f, 1f);
     [SerializeField] private float flashDuration = 0.5f;
     [SerializeField] private string sfxResourceName = "TrapHit";
 
-    // ── NEW: grid position so TrapManager can remove us from A* list ──
-    [HideInInspector] public Vector2Int gridCell; // Set by TrapManager after spawning
+    [HideInInspector] public Vector2Int gridCell;
 
     private GameTimer timer;
     private TrapManager trapManager;
@@ -42,29 +33,30 @@ public class TrapTile : MonoBehaviour
 
     private IEnumerator Trigger()
     {
-        enabled = false; // Disable so it can never trigger again
+        var col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
 
         if (trapSfx != null)
         {
-            var listenerPos = Camera.main != null ? Camera.main.transform.position : transform.position;
+            Vector3 listenerPos = Camera.main != null ? Camera.main.transform.position : transform.position;
             AudioSource.PlayClipAtPoint(trapSfx, listenerPos);
         }
 
-        // Subtract time from the timer
         timer?.SubtractTime(timePenalty);
-
-        // ── NEW: notify TrapManager this trap was triggered ──
         trapManager?.OnTrapTriggered(gridCell);
 
-        // Flash red
-        var renderer = GetComponentInChildren<Renderer>();
-        if (renderer != null)
+        Renderer roadRenderer = null;
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 2f))
+            roadRenderer = hit.collider.GetComponent<Renderer>() ?? hit.collider.GetComponentInChildren<Renderer>();
+
+        if (roadRenderer != null)
         {
-            var mat = renderer.material;
-            var original = mat.color;
-            mat.color = flashColor;
+            var mat = roadRenderer.material;
+            string colorProp = mat.HasProperty("_BaseColor") ? "_BaseColor" : "_Color";
+            var original = mat.GetColor(colorProp);
+            mat.SetColor(colorProp, flashColor);
             yield return new WaitForSeconds(flashDuration);
-            mat.color = original;
+            if (mat != null) mat.SetColor(colorProp, original);
         }
         else
         {
