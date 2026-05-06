@@ -69,7 +69,7 @@ public class TreasureManager : MonoBehaviour
 
     private void Start()
     {
-        
+
         SpawnTreasuresForRun();
         PushHud();
     }
@@ -135,7 +135,7 @@ public class TreasureManager : MonoBehaviour
                 zoneName = "South",
                 candidateCells = new List<Vector2Int>
                 {
-                    new Vector2Int(0, 0),
+                    new Vector2Int(2, 0),
                     new Vector2Int(0, 2),
                     new Vector2Int(3, 1),
                     new Vector2Int(1, 3),
@@ -216,7 +216,7 @@ public class TreasureManager : MonoBehaviour
         if (collectible == null)
             return;
 
-        collectible.Initialize(this);
+        collectible.Initialize(this, chestInstance);
 
         TreasureSpin spin = chestInstance.GetComponent<TreasureSpin>();
         if (spin == null)
@@ -332,6 +332,9 @@ public class TreasureManager : MonoBehaviour
 
     private void PushHud()
     {
+        if (hudController == null)
+            hudController = FindAnyObjectByType<TreasureHUDController>(FindObjectsInactive.Include);
+
         if (hudController != null)
             hudController.Render(collectedCount, flashValue);
 

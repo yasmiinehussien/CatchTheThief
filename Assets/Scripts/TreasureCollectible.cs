@@ -14,10 +14,12 @@ public class TreasureCollectible : MonoBehaviour
     private bool collected;
     private Collider col;
     private AudioClip openSfx;
+    private GameObject chestRoot;
 
-    public void Initialize(TreasureManager treasureManager)
+    public void Initialize(TreasureManager treasureManager, GameObject root)
     {
         manager = treasureManager;
+        chestRoot = root;
         openSfx = Resources.Load<AudioClip>(sfxResourceName);
         col = GetComponent<Collider>();
         if (col == null) col = gameObject.AddComponent<BoxCollider>();
@@ -66,6 +68,6 @@ public class TreasureCollectible : MonoBehaviour
         }
 
         yield return new WaitForSeconds(destroyDelay);
-        Destroy(gameObject);
+        Destroy(chestRoot != null ? chestRoot : gameObject);
     }
 }

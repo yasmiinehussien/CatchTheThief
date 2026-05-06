@@ -1,19 +1,11 @@
-﻿// TrapTile.cs  (UPDATED VERSION)
-// Place this in: Assets/Scripts/Gameplay/
-//
-// CHANGES FROM ORIGINAL:
-//   Added: reports its grid position to TrapManager when triggered.
-//   This lets TrapManager remove it from the A* target list.
-//   Everything else is identical to the original TrapTile.cs.
-
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class TrapTile : MonoBehaviour
 {
     [SerializeField] private string playerTag = "Player";
     [SerializeField] private float timePenalty = 10f;
-    [SerializeField] private Color flashColor = new Color(1f, 0f, 0f, 0.5f);
+    [SerializeField] private Color flashColor = new Color(1f, 0f, 0f, 1f);
     [SerializeField] private float flashDuration = 0.5f;
     [SerializeField] private string sfxResourceName = "TrapHit";
 
@@ -87,8 +79,8 @@ public class TrapTile : MonoBehaviour
             AudioSource.PlayClipAtPoint(trapSfx, listenerPos);
         }
 
-        // 3. Safety Check: Timer 
-        // Use an explicit null check here. Unity's '==' operator is more reliable 
+        // 3. Safety Check: Timer
+        // Use an explicit null check here. Unity's '==' operator is more reliable
         // than '?' for destroyed objects.
         if (timer != null)
         {
@@ -102,21 +94,19 @@ public class TrapTile : MonoBehaviour
         }
 
         // 5. Visual Flash Logic
-        var renderer = GetComponentInChildren<Renderer>();
+        var renderer = GetComponent<Renderer>() ?? GetComponentInChildren<Renderer>();
         if (renderer != null)
         {
+            renderer.enabled = true;
             var mat = renderer.material;
-            var original = mat.color;
-            mat.color = flashColor;
+            string colorProp = mat.HasProperty("_BaseColor") ? "_BaseColor" : "_Color";
+            var original = mat.GetColor(colorProp);
+            mat.SetColor(colorProp, flashColor);
 
-            // Wait...
             yield return new WaitForSeconds(flashDuration);
 
-            // 6. Final Safety Check: Did the object get destroyed during the wait?
             if (mat != null)
-            {
-                mat.color = original;
-            }
+                mat.SetColor(colorProp, original);
         }
         else
         {
