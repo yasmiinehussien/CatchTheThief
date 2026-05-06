@@ -146,12 +146,25 @@ public class BuildingSpawner : MonoBehaviour
             GameObject t = Instantiate(prefab, pos, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f), transform);
             // Smaller scale ensures they don't block the road view
             t.transform.localScale = Vector3.one * 0.45f;
+
+            // Ensure trees have colliders and are not triggers so the CharacterController will collide with them.
+            EnsureCollider(t);
         }
     }
 
     void EnsureCollider(GameObject go)
     {
-        if (go.GetComponent<Collider>() == null)
-            go.AddComponent<BoxCollider>();
+        // Make sure any existing colliders on the object or its children are non-trigger
+        Collider[] existing = go.GetComponentsInChildren<Collider>(true);
+        if (existing != null && existing.Length > 0)
+        {
+            foreach (var c in existing)
+                c.isTrigger = false;
+            return;
+        }
+
+        // If no collider exists, add a BoxCollider to the root (non-trigger)
+        var box = go.AddComponent<BoxCollider>();
+        box.isTrigger = false;
     }
 }

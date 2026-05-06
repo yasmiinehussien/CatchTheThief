@@ -96,7 +96,8 @@ public class GridManager : MonoBehaviour
         tile.transform.SetParent(transform);
         tile.transform.position = pos;
         tile.transform.localScale = new Vector3(0.1f, 1f, 0.1f);
-        Destroy(tile.GetComponent<Collider>());
+        if (!isRoad)
+            Destroy(tile.GetComponent<Collider>());
 
         Material mat = new Material(Shader.Find("Standard"));
         mat.SetFloat("_Glossiness", 0f);
