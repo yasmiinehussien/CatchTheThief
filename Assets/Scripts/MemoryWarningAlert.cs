@@ -65,61 +65,61 @@ public class MemoryWarningAlert : MonoBehaviour
         cardRT.sizeDelta = new Vector2(560, 580);
         cardRT.anchoredPosition = Vector2.zero;
         var cardImg = panel.AddComponent<Image>();
-        cardImg.color = new Color(1f, 0.97f, 0.91f, 1f);
+        cardImg.color = new Color(0.90f, 0.95f, 1f, 1f);          // light blue card
         var outline = panel.AddComponent<Outline>();
-        outline.effectColor = new Color(0.91f, 0.63f, 0f, 1f);
+        outline.effectColor = new Color(0.13f, 0.47f, 0.84f, 1f); // blue outline
         outline.effectDistance = new Vector2(5, 5);
 
         // WARNING badge
         var badge = MakeChild(panel, "Badge", new Vector2(0, 245), new Vector2(260, 55));
         var badgeImg = badge.AddComponent<Image>();
-        badgeImg.color = new Color(0.91f, 0.63f, 0f, 1f);
+        badgeImg.color = new Color(0.13f, 0.47f, 0.84f, 1f);      // blue badge
         badgeImg.raycastTarget = false;
-        var badgeText = MakeText(badge, "WARNING", 26, new Color(0.48f, 0.24f, 0f));
+        var badgeText = MakeText(badge, "WARNING", 26, Color.white); // white text on blue
         badgeText.alignment = TextAlignmentOptions.Center;
         badgeText.fontStyle = FontStyles.Bold;
 
         // Title
         var titleGO = MakeChild(panel, "Title", new Vector2(0, 155), new Vector2(500, 80));
-        var titleText = MakeText(titleGO, "Cannot Use Memory Flash!", 38, new Color(0.78f, 0.32f, 0.04f));
+        var titleText = MakeText(titleGO, "Cannot Use Memory Flash!", 38, new Color(0.08f, 0.35f, 0.75f));
         titleText.alignment = TextAlignmentOptions.Center;
         titleText.fontStyle = FontStyles.Bold;
 
         // Count box
         var countBox = MakeChild(panel, "CountBox", new Vector2(0, 15), new Vector2(460, 150));
         var countBoxImg = countBox.AddComponent<Image>();
-        countBoxImg.color = new Color(0.99f, 0.94f, 0.76f, 1f);
+        countBoxImg.color = new Color(0.80f, 0.90f, 1f, 1f);      // lighter blue box
         countBoxImg.raycastTarget = false;
         var countOutline = countBox.AddComponent<Outline>();
-        countOutline.effectColor = new Color(0.91f, 0.63f, 0f, 1f);
+        countOutline.effectColor = new Color(0.13f, 0.47f, 0.84f, 1f); // blue outline
         countOutline.effectDistance = new Vector2(3, 3);
 
         var needLabel = MakeChild(countBox, "NeedLabel", new Vector2(0, 40), new Vector2(400, 35));
-        var needText = MakeText(needLabel, "You need at least", 18, new Color(0.48f, 0.24f, 0f));
+        var needText = MakeText(needLabel, "You need at least", 18, new Color(0.05f, 0.25f, 0.55f));
         needText.alignment = TextAlignmentOptions.Center;
         needText.raycastTarget = false;
 
         var numGO = MakeChild(countBox, "Num", new Vector2(0, -5), new Vector2(400, 60));
-        var numText = MakeText(numGO, "3 fragments", 42, new Color(0.78f, 0.32f, 0.04f));
+        var numText = MakeText(numGO, "3 fragments", 42, new Color(0.08f, 0.35f, 0.75f));
         numText.alignment = TextAlignmentOptions.Center;
         numText.fontStyle = FontStyles.Bold;
         numText.raycastTarget = false;
 
         var subLabel = MakeChild(countBox, "SubLabel", new Vector2(0, -52), new Vector2(400, 35));
-        var subText = MakeText(subLabel, "to activate Memory Flash", 16, new Color(0.48f, 0.24f, 0f));
+        var subText = MakeText(subLabel, "to activate Memory Flash", 16, new Color(0.05f, 0.25f, 0.55f));
         subText.alignment = TextAlignmentOptions.Center;
         subText.raycastTarget = false;
 
         // Hint text
         var hintGO = MakeChild(panel, "Hint", new Vector2(0, -130), new Vector2(480, 40));
-        var hintText = MakeText(hintGO, "Collect more treasures first!", 18, new Color(0.60f, 0.35f, 0f));
+        var hintText = MakeText(hintGO, "Collect more treasures first!", 18, new Color(0.10f, 0.40f, 0.80f));
         hintText.alignment = TextAlignmentOptions.Center;
         hintText.raycastTarget = false;
 
         // OK button
         var okGO = MakeChild(panel, "OKBtn", new Vector2(0, -220), new Vector2(460, 70));
         var okImg = okGO.AddComponent<Image>();
-        okImg.color = new Color(0.91f, 0.63f, 0f, 1f);
+        okImg.color = new Color(0.13f, 0.47f, 0.84f, 1f);         // blue button
         okImg.raycastTarget = true;
         okButton = okGO.AddComponent<Button>();
         okButton.targetGraphic = okImg;
@@ -136,7 +136,7 @@ public class MemoryWarningAlert : MonoBehaviour
         var okTxt = okTxtGO.AddComponent<TextMeshProUGUI>();
         okTxt.text = "OK, Got it!";
         okTxt.fontSize = 28;
-        okTxt.color = new Color(0.48f, 0.24f, 0f);
+        okTxt.color = Color.white;                                 // white text on blue button
         okTxt.alignment = TextAlignmentOptions.Center;
         okTxt.fontStyle = FontStyles.Bold;
         okTxt.raycastTarget = false;
