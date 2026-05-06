@@ -34,6 +34,15 @@ public class GameTimer : MonoBehaviour
     private void Update()
     {
         if (!running) return;
+
+        // ADD THIS LOG:
+        Debug.Log($"Timer Running: {remaining} | TimeScale: {Time.timeScale}");
+
+        if (remaining > 0f)
+        {
+            remaining -= Time.deltaTime;
+            Render();
+        }
         remaining -= Time.deltaTime;
         if (remaining <= 0f)
         {

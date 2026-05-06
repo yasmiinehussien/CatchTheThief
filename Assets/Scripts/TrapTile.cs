@@ -34,37 +34,89 @@ public class TrapTile : MonoBehaviour
         col.isTrigger = true;
     }
 
+
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag(playerTag)) return;
         StartCoroutine(Trigger());
     }
 
+    //private IEnumerator Trigger()
+    //{
+    //    enabled = false; // Disable so it can never trigger again
+
+    //    if (trapSfx != null)
+    //    {
+    //        var listenerPos = Camera.main != null ? Camera.main.transform.position : transform.position;
+    //        AudioSource.PlayClipAtPoint(trapSfx, listenerPos);
+    //    }
+
+    //    // Subtract time from the timer
+    //    timer?.SubtractTime(timePenalty);
+
+    //    // ── NEW: notify TrapManager this trap was triggered ──
+    //    trapManager?.OnTrapTriggered(gridCell);
+
+    //    // Flash red
+    //    var renderer = GetComponentInChildren<Renderer>();
+    //    if (renderer != null)
+    //    {
+    //        var mat = renderer.material;
+    //        var original = mat.color;
+    //        mat.color = flashColor;
+    //        yield return new WaitForSeconds(flashDuration);
+    //        mat.color = original;
+    //    }
+    //    else
+    //    {
+    //        yield return new WaitForSeconds(flashDuration);
+    //    }
+    //}
+
+    //Changed
     private IEnumerator Trigger()
     {
-        enabled = false; // Disable so it can never trigger again
+        // 1. Immediately disable the collider so it can't be hit twice
+        var col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
 
+        // 2. Safety Check: Audio
         if (trapSfx != null)
         {
-            var listenerPos = Camera.main != null ? Camera.main.transform.position : transform.position;
+            Vector3 listenerPos = Camera.main != null ? Camera.main.transform.position : transform.position;
             AudioSource.PlayClipAtPoint(trapSfx, listenerPos);
         }
 
-        // Subtract time from the timer
-        timer?.SubtractTime(timePenalty);
+        // 3. Safety Check: Timer 
+        // Use an explicit null check here. Unity's '==' operator is more reliable 
+        // than '?' for destroyed objects.
+        if (timer != null)
+        {
+            timer.SubtractTime(timePenalty);
+        }
 
-        // ── NEW: notify TrapManager this trap was triggered ──
-        trapManager?.OnTrapTriggered(gridCell);
+        // 4. Safety Check: TrapManager
+        if (trapManager != null)
+        {
+            trapManager.OnTrapTriggered(gridCell);
+        }
 
-        // Flash red
+        // 5. Visual Flash Logic
         var renderer = GetComponentInChildren<Renderer>();
         if (renderer != null)
         {
             var mat = renderer.material;
             var original = mat.color;
             mat.color = flashColor;
+
+            // Wait...
             yield return new WaitForSeconds(flashDuration);
-            mat.color = original;
+
+            // 6. Final Safety Check: Did the object get destroyed during the wait?
+            if (mat != null)
+            {
+                mat.color = original;
+            }
         }
         else
         {
