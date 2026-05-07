@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class TimeUpAlert : MonoBehaviour
 {
     private TreasureManager treasureManager;
+    private GameTimer gameTimer;
     private GameObject panel;
     private TMP_Text titleText;
     private TMP_Text subtitleText;
@@ -13,9 +14,12 @@ public class TimeUpAlert : MonoBehaviour
     private Button playAgainButton;
     private Button homeButton;
 
+    private bool gameEnded = false;   // ensures only one final UI
+
     private void Awake()
     {
         treasureManager = FindAnyObjectByType<TreasureManager>();
+        gameTimer = FindAnyObjectByType<GameTimer>();
         BuildUI();
         panel.SetActive(false);
         var bg = gameObject.GetComponent<Image>();
@@ -52,7 +56,7 @@ public class TimeUpAlert : MonoBehaviour
         var badgeImg = badge.AddComponent<Image>();
         badgeImg.color = new Color(0.96f, 0.65f, 0.14f, 1f);
         badgeImg.raycastTarget = false;
-        var badgeText = MakeText(badge, "TIME'S UP!", 26, new Color(0.48f, 0.24f, 0f));
+        var badgeText = MakeText(badge, "WELL DONE!", 26, new Color(0.48f, 0.24f, 0f));
         badgeText.alignment = TextAlignmentOptions.Center;
         badgeText.fontStyle = FontStyles.Bold;
 
@@ -97,91 +101,144 @@ public class TimeUpAlert : MonoBehaviour
         homeButton.onClick.AddListener(OnHomeScreen);
     }
 
+    // Called from GameTimer when time runs out (failure)
     public void ShowAlert()
     {
-        // Bring to front
-        transform.SetAsLastSibling();
+        if (gameEnded) return;
+        gameEnded = true;
 
-       // int count = 5; // test value
+        if (gameTimer != null) gameTimer.Stop();
+        DisablePlayerMovement();
+
         int count = treasureManager != null ? treasureManager.CollectedCount : 0;
 
-        // Show dark overlay
+        // Dark overlay
         var bg = gameObject.GetComponent<Image>();
         if (bg != null)
         {
             bg.color = new Color(0, 0, 0, 0.7f);
-            bg.raycastTarget = false;
+            bg.raycastTarget = true;
         }
 
         panel.SetActive(true);
 
-        if (count > 0)
+        // --- Failure (Game Over) theme ---
+        titleText.text = "Game Over!";
+        titleText.color = new Color(0.8f, 0.1f, 0.1f, 1f);
+        subtitleText.text = "Time ran out before reaching the bank.";
+        subtitleText.color = new Color(0.6f, 0.1f, 0.1f, 1f);
+        fragmentCountText.text = count.ToString();
+        fragmentCountText.color = new Color(0.8f, 0.1f, 0.1f, 1f);
+
+        var o = panel.GetComponent<Outline>();
+        if (o) o.effectColor = new Color(0.8f, 0.1f, 0.1f, 1f);
+        panel.GetComponent<Image>().color = new Color(1f, 0.88f, 0.88f, 1f);
+
+        var badge = panel.transform.Find("Badge");
+        if (badge != null)
         {
-            titleText.text = "Congratulations!";
-            titleText.color = new Color(0.78f, 0.32f, 0.04f);
-            subtitleText.text = "You collected treasures!";
-            fragmentCountText.text = count.ToString();
-            var o = panel.GetComponent<Outline>();
-            if (o) o.effectColor = new Color(0.96f, 0.65f, 0.14f, 1f);
-            panel.GetComponent<Image>().color = new Color(1f, 0.97f, 0.91f, 1f);
+            var badgeImg = badge.GetComponent<Image>();
+            if (badgeImg) badgeImg.color = new Color(0.8f, 0.1f, 0.1f, 1f);
         }
-        else
+
+        var countBox = panel.transform.Find("CountBox");
+        if (countBox != null)
         {
-            titleText.text = "Game Over!";
-            titleText.color = new Color(0.8f, 0.1f, 0.1f, 1f);
-            subtitleText.text = "No fragments collected";
-            subtitleText.color = new Color(0.6f, 0.1f, 0.1f, 1f);
-            fragmentCountText.text = "0";
-            fragmentCountText.color = new Color(0.8f, 0.1f, 0.1f, 1f);
-            var o = panel.GetComponent<Outline>();
-            if (o) o.effectColor = new Color(0.8f, 0.1f, 0.1f, 1f);
-            panel.GetComponent<Image>().color = new Color(1f, 0.88f, 0.88f, 1f);
+            var boxImg = countBox.GetComponent<Image>();
+            if (boxImg) boxImg.color = new Color(1f, 0.82f, 0.82f, 1f);
+            var boxOutline = countBox.GetComponent<Outline>();
+            if (boxOutline) boxOutline.effectColor = new Color(0.8f, 0.1f, 0.1f, 1f);
+        }
 
-            // Red badge
-            var badge = panel.transform.Find("Badge");
-            if (badge != null)
-            {
-                var badgeImg = badge.GetComponent<Image>();
-                if (badgeImg) badgeImg.color = new Color(0.8f, 0.1f, 0.1f, 1f);
-            }
+        var playBtn = panel.transform.Find("Play AgainBtn");
+        if (playBtn != null)
+        {
+            var btnImg = playBtn.GetComponent<Image>();
+            if (btnImg) btnImg.color = new Color(0.8f, 0.1f, 0.1f, 1f);
+        }
 
-            // Red count box
-            var countBox = panel.transform.Find("CountBox");
-            if (countBox != null)
-            {
-                var boxImg = countBox.GetComponent<Image>();
-                if (boxImg) boxImg.color = new Color(1f, 0.82f, 0.82f, 1f);
-                var boxOutline = countBox.GetComponent<Outline>();
-                if (boxOutline) boxOutline.effectColor = new Color(0.8f, 0.1f, 0.1f, 1f);
-            }
+        var homeBtn = panel.transform.Find("Home ScreenBtn");
+        if (homeBtn != null)
+        {
+            var btnOutline = homeBtn.GetComponent<Outline>();
+            if (btnOutline) btnOutline.effectColor = new Color(0.8f, 0.1f, 0.1f, 1f);
+        }
+    }
 
-            // Red Play Again button
-            var playBtn = panel.transform.Find("Play AgainBtn");
-            if (playBtn != null)
-            {
-                var btnImg = playBtn.GetComponent<Image>();
-                if (btnImg) btnImg.color = new Color(0.8f, 0.1f, 0.1f, 1f);
-            }
+    // Called from PlayerMovement when the bank is reached (success)
+    public void ShowSuccess()
+    {
+        // Prevent success if game already ended OR timer has already run out
+        if (gameEnded) return;
+        if (gameTimer != null && gameTimer.Remaining <= 0f) return;
 
-            // Red outline Home button
-            var homeBtn = panel.transform.Find("Home ScreenBtn");
-            if (homeBtn != null)
-            {
-                var btnOutline = homeBtn.GetComponent<Outline>();
-                if (btnOutline) btnOutline.effectColor = new Color(0.8f, 0.1f, 0.1f, 1f);
-            }
+        gameEnded = true;
+
+        if (gameTimer != null) gameTimer.Stop();
+        DisablePlayerMovement();
+
+        int count = treasureManager != null ? treasureManager.CollectedCount : 0;
+
+        var bg = gameObject.GetComponent<Image>();
+        if (bg != null)
+        {
+            bg.color = new Color(0, 0, 0, 0.7f);
+            bg.raycastTarget = true;
+        }
+
+        panel.SetActive(true);
+
+        // --- Success theme (gold/orange) ---
+        titleText.text = "Congratulations!";
+        titleText.color = new Color(0.78f, 0.32f, 0.04f);
+        subtitleText.text = "You reached the bank!";
+        subtitleText.color = new Color(0.48f, 0.24f, 0f);
+        fragmentCountText.text = count.ToString();
+        fragmentCountText.color = new Color(0.78f, 0.32f, 0.04f);
+
+        var o = panel.GetComponent<Outline>();
+        if (o) o.effectColor = new Color(0.96f, 0.65f, 0.14f, 1f);
+        panel.GetComponent<Image>().color = new Color(1f, 0.97f, 0.91f, 1f);
+
+        var badge = panel.transform.Find("Badge");
+        if (badge != null)
+        {
+            var badgeImg = badge.GetComponent<Image>();
+            if (badgeImg) badgeImg.color = new Color(0.96f, 0.65f, 0.14f, 1f);
+        }
+
+        var countBox = panel.transform.Find("CountBox");
+        if (countBox != null)
+        {
+            var boxImg = countBox.GetComponent<Image>();
+            if (boxImg) boxImg.color = new Color(0.99f, 0.94f, 0.76f, 1f);
+            var boxOutline = countBox.GetComponent<Outline>();
+            if (boxOutline) boxOutline.effectColor = new Color(0.96f, 0.65f, 0.14f, 1f);
+        }
+    }
+
+    private void DisablePlayerMovement()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            var controller = player.GetComponent<CharacterController>();
+            if (controller != null) controller.enabled = false;
+            var rb = player.GetComponent<Rigidbody>();
+            if (rb != null) rb.isKinematic = true;
+            // Add any other movement scripts you use (e.g., PlayerMovement)
+            var movement = player.GetComponent<PlayerMovement>();
+            if (movement != null) movement.enabled = false;
         }
     }
 
     public void OnPlayAgain()
     {
-        Debug.Log("Play Again clicked!");
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void OnHomeScreen()
     {
-        Debug.Log("Home Screen clicked!");
         SceneManager.LoadScene("MainMenu");
     }
 

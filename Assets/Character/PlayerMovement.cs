@@ -289,34 +289,29 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void OnControllerColliderHit(ControllerColliderHit hit)
+{
+    if (hasWon) return;
+    if (hit == null || hit.gameObject == null) return;
+
+    if (hit.gameObject.CompareTag("EndTile"))
     {
-        if (hasWon) return;
-        if (hit == null || hit.gameObject == null) return;
-
-        if (hit.gameObject.CompareTag("EndTile"))
+        hasWon = true;
+        _currentSpeed = 0f;
+        if (_animator != null)
         {
-            hasWon = true;
-            _currentSpeed = 0f;
-            if (_animator != null)
-            {
-                _animator.SetBool("isWalking", false);
+            _animator.SetBool("isWalking", false);
+            _animator.SetTrigger("Dance");
+        }
 
-                // Trigger the dance animation. Make sure Animator has a Trigger parameter named "Dance".
-                _animator.SetTrigger("Dance");
-            }
-
-            // Show end-game UI after triggering animation.
-            var timeUpAlert = FindAnyObjectByType<TimeUpAlert>();
-            if (timeUpAlert != null)
-            {
-                // Optionally: delay showing the alert until the dance finishes.
-                // If you want a delay, use StartCoroutine(ShowAlertDelayed(revealDelay));
-                timeUpAlert.ShowAlert();
-            }
-            else
-            {
-                Debug.Log("PlayerMovement: Reached bank — win triggered.");
-            }
+        var timeUpAlert = FindAnyObjectByType<TimeUpAlert>();
+        if (timeUpAlert != null)
+        {
+            timeUpAlert.ShowSuccess();  
+        }
+        else
+        {
+            Debug.Log("PlayerMovement: Reached bank — win triggered.");
         }
     }
+}
 }

@@ -112,6 +112,7 @@ public class BuildingSpawner : MonoBehaviour
         shop.name = "Bank";
         shop.tag = "EndTile";
         EnsureCollider(shop);
+        
 
         GameObject glow = new GameObject("BankGlow");
         glow.transform.position = pos + Vector3.up * 2f;
