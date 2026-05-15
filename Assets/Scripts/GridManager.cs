@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+
 public class GridManager : MonoBehaviour
 {
     public GameObject roadTilePrefab;
@@ -10,6 +11,7 @@ public class GridManager : MonoBehaviour
 
     public Texture2D grassTexture;
     public Texture2D roadTexture;
+   // public Transform player;
 
     // ═══════════════════════════════════════════════════════
     //  NEW MAP  —  12 cols (x=0..11)  x  12 rows (z=0..11)
@@ -56,7 +58,10 @@ public class GridManager : MonoBehaviour
 };
 
     void Awake() { Instance = this; }
-    void Start() { BuildGrid(); }
+    void Start() { BuildGrid();
+        
+    }
+
 
     public Vector3 GridToWorld(int x, int z)
     {
@@ -88,7 +93,9 @@ public class GridManager : MonoBehaviour
                 grid[x, z].isWalkable = isRoad;
             }
         }
+     
     }
+    
 
     GameObject CreateFlatTile(Vector3 pos, bool isRoad)
     {

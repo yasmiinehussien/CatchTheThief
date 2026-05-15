@@ -106,17 +106,29 @@ public class BuildingSpawner : MonoBehaviour
     void SpawnShop()
     {
         if (shopPrefab == null) return;
-
         Vector3 pos = new Vector3(5.5f, 0f, 12.5f);
         GameObject shop = Instantiate(shopPrefab, pos, Quaternion.Euler(0f, 180f, 0f), transform);
         shop.name = "Bank";
         shop.tag = "EndTile";
         EnsureCollider(shop);
-        
 
+        // ── Invisible Win Wall before the stairs ──────────────
+        GameObject doorWall = new GameObject("BankDoor");
+        doorWall.tag = "door";
+        doorWall.transform.parent = null; // world space — easier to position
+
+        // Place it in world space just before the stairs
+        doorWall.transform.position = new Vector3(5.5f, 1f, 10.5f); // Z=10.5 = just before stairs
+
+        BoxCollider box = doorWall.AddComponent<BoxCollider>();
+        box.isTrigger = false;
+        box.size = new Vector3(1f, 3f, 0.3f); // wide, thin wall
+
+        Debug.Log("BankDoor world pos: " + doorWall.transform.position);
+
+        // ── Glow Light ────────────────────────────────────────
         GameObject glow = new GameObject("BankGlow");
         glow.transform.position = pos + Vector3.up * 2f;
-
         Light lightComp = glow.AddComponent<Light>();
         lightComp.type = LightType.Point;
         lightComp.color = new Color(1f, 0.9f, 0.5f);
@@ -179,7 +191,11 @@ public class BuildingSpawner : MonoBehaviour
         if (existing != null && existing.Length > 0)
         {
             foreach (var c in existing)
+            {
+                // Don't override the door trigger collider
+                if (c.gameObject.CompareTag("door")) continue;
                 c.isTrigger = false;
+            }
             return;
         }
 

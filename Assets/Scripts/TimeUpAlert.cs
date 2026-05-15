@@ -228,7 +228,11 @@ public class TimeUpAlert : MonoBehaviour
             if (rb != null) rb.isKinematic = true;
             // Add any other movement scripts you use (e.g., PlayerMovement)
             var movement = player.GetComponent<PlayerMovement>();
-            if (movement != null) movement.enabled = false;
+            if (movement != null)
+            {
+                movement.StopPlayer();
+                movement.enabled = false;
+            }
         }
     }
 
