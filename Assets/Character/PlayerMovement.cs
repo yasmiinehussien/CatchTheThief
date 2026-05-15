@@ -28,6 +28,7 @@ public class PlayerMovement : MonoBehaviour
 
     private GridManager gm;
     private bool hasWon = false;
+    private bool isSpawning = true;
 
     void Start()
     {
@@ -36,35 +37,31 @@ public class PlayerMovement : MonoBehaviour
 
         gm = GridManager.Instance;
 
-        Invoke(nameof(SpawnAtStart), 0.01f);
+        Invoke(nameof(SpawnAtStart), 0f);
     }
 
     void SpawnAtStart()
     {
         if (GridManager.Instance == null) return;
 
-        // Keep the original start but ensure it is a valid tile
+        isSpawning = true;
+
         Vector3 startPos = GridManager.Instance.GridToWorld(0, 0);
-        startPos.y = 0.01f; 
+        startPos.y = 0f;
 
         _controller.enabled = false;
         transform.position = startPos;
         _controller.enabled = true;
 
-        // If the starting cell is invalid (edge cases), snap to nearest valid
-        if (enforceGridBounds && !IsPositionOnMap(transform.position))
-        {
-            Vector2Int? nearest = FindNearestValidCell(transform.position, snapSearchRadius);
-            if (nearest.HasValue)
-            {
-                Vector3 world = GridManager.Instance.GridToWorld(nearest.Value.x, nearest.Value.y);
-                world.y = transform.position.y;
-                _controller.enabled = false;
-                transform.position = world;
-                _controller.enabled = true;
-            }
-        }
+        _verticalVelocity = 0f;
+
+        Invoke(nameof(FinishSpawn), 0.01f);
     }
+    void FinishSpawn()
+    {
+        isSpawning = false;
+    }
+
 
     void Update()
     {
@@ -72,7 +69,7 @@ public class PlayerMovement : MonoBehaviour
         ApplyGravity();
         // Safety: if for any reason player ends on invalid tile, snap back to nearest valid
         if (enforceGridBounds)
-            EnsureOnValidTile();
+         EnsureOnValidTile();
     }
 
     void HandleMovement()
@@ -190,39 +187,28 @@ public class PlayerMovement : MonoBehaviour
         _controller.Move(Vector3.up * _verticalVelocity * Time.deltaTime);
     }
 
-    void EnsureOnValidTile()
+   void EnsureOnValidTile()
+{
+    if (isSpawning) return;
+    if (gm == null || gm.mapLayout == null) return;
+
+    if (IsPositionOnMap(transform.position))
+        return;
+
+    Vector2Int? nearest = FindNearestValidCell(transform.position, snapSearchRadius);
+
+    if (nearest.HasValue)
     {
-        if (gm == null || gm.mapLayout == null) return;
+        Vector3 world = gm.GridToWorld(nearest.Value.x, nearest.Value.y);
+        world.y = 0f;
 
-        if (IsPositionOnMap(transform.position))
-            return;
+        _controller.enabled = false;
+        transform.position = world;
+        _controller.enabled = true;
 
-        // Try to snap to nearest valid map tile within radius
-        Vector2Int? nearest = FindNearestValidCell(transform.position, snapSearchRadius);
-        if (nearest.HasValue)
-        {
-            Vector3 world = gm.GridToWorld(nearest.Value.x, nearest.Value.y);
-            world.y = Mathf.Max(transform.position.y, 0.1f);
-            _controller.enabled = false;
-            transform.position = world;
-            _controller.enabled = true;
-            _verticalVelocity = 0f;
-        }
-        else
-        {
-            // As a fallback clamp inside grid bounds
-            int rows = gm.mapLayout.GetLength(0);
-            int cols = gm.mapLayout.GetLength(1);
-            Vector3 p = transform.position;
-            float r = _controller.radius;
-            p.x = Mathf.Clamp(p.x, -0.5f + r, cols - 0.5f - r);
-            p.z = Mathf.Clamp(p.z, -0.5f + r, rows - 0.5f - r);
-            _controller.enabled = false;
-            transform.position = p;
-            _controller.enabled = true;
-            _verticalVelocity = 0f;
-        }
+        _verticalVelocity = 0f;
     }
+}
 
     // Returns true when world position maps inside grid bounds and to a valid tile (road or grass)
     private bool IsPositionOnMap(Vector3 worldPos)
@@ -287,31 +273,36 @@ public class PlayerMovement : MonoBehaviour
 
         return null;
     }
-
-    void OnControllerColliderHit(ControllerColliderHit hit)
-{
-    if (hasWon) return;
-    if (hit == null || hit.gameObject == null) return;
-
-    if (hit.gameObject.CompareTag("EndTile"))
+    public void StopPlayer()
     {
-        hasWon = true;
         _currentSpeed = 0f;
-        if (_animator != null)
-        {
-            _animator.SetBool("isWalking", false);
-            _animator.SetTrigger("Dance");
-        }
+        _speedVelocity = 0f;
+        _verticalVelocity = 0f;
 
-        var timeUpAlert = FindAnyObjectByType<TimeUpAlert>();
-        if (timeUpAlert != null)
+        if (_animator != null)
+            _animator.SetBool("isWalking", false);
+    }
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (hasWon) return;
+        if (hit == null || hit.gameObject == null) return;
+
+        if (hit.gameObject.CompareTag("door"))
         {
-            timeUpAlert.ShowSuccess();  
-        }
-        else
-        {
-            Debug.Log("PlayerMovement: Reached bank — win triggered.");
+            hasWon = true;
+            _currentSpeed = 0f;
+
+            if (_animator != null)
+            {
+                _animator.SetBool("isWalking", false);
+                _animator.SetTrigger("Dance");
+            }
+
+            var timeUpAlert = FindAnyObjectByType<TimeUpAlert>();
+            if (timeUpAlert != null)
+                timeUpAlert.ShowSuccess();
+            else
+                Debug.Log("WIN!");
         }
     }
-}
 }
