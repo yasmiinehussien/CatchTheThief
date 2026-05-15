@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,9 +15,6 @@ public class PlayerMovement : MonoBehaviour
     [Header("Grid Constraints")]
     [Tooltip("If true, movement is restricted to tiles inside GridManager.mapLayout (road or grass).")]
     public bool enforceGridBounds = true;
-    [Tooltip("Max search radius (tiles) used if player ends up outside valid tiles — player will snap to nearest valid tile within this radius.")]
-    public int snapSearchRadius = 3;
-
     private CharacterController _controller;
     private Animator _animator;
 
@@ -28,7 +25,7 @@ public class PlayerMovement : MonoBehaviour
 
     private GridManager gm;
     private bool hasWon = false;
-    private bool isSpawning = true;
+    
 
     void Start()
     {
@@ -43,31 +40,18 @@ public class PlayerMovement : MonoBehaviour
     void SpawnAtStart()
     {
         if (GridManager.Instance == null) return;
-
-        isSpawning = true;
-
         Vector3 startPos = GridManager.Instance.GridToWorld(0, 0);
         startPos.y = 0f;
-
         _controller.enabled = false;
         transform.position = startPos;
         _controller.enabled = true;
-
         _verticalVelocity = 0f;
-
-        Invoke(nameof(FinishSpawn), 0.01f);
     }
-    void FinishSpawn()
-    {
-        isSpawning = false;
-    }
-
 
     void Update()
     {
         HandleMovement();
         ApplyGravity();
-        // Safety: if for any reason player ends on invalid tile, snap back to nearest valid
         if (enforceGridBounds)
          EnsureOnValidTile();
     }
@@ -106,7 +90,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 inputDir = new Vector3(input.x, 0f, input.y).normalized;
         Vector3 intendedMovement = inputDir * _currentSpeed * Time.deltaTime;
 
-        // If grid enforcement is enabled, validate the movement before applying it
         if (enforceGridBounds && gm != null && gm.mapLayout != null)
         {
             Vector3 currentPos = transform.position;
@@ -119,7 +102,7 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
-                // Try axis-aligned moves (sliding)
+             
                 Vector3 targetX = currentPos + new Vector3(intendedMovement.x, 0f, 0f);
                 Vector3 targetZ = currentPos + new Vector3(0f, 0f, intendedMovement.z);
 
@@ -187,33 +170,27 @@ public class PlayerMovement : MonoBehaviour
         _controller.Move(Vector3.up * _verticalVelocity * Time.deltaTime);
     }
 
-   void EnsureOnValidTile()
-{
-    if (isSpawning) return;
-    if (gm == null || gm.mapLayout == null) return;
-
-    if (IsPositionOnMap(transform.position))
-        return;
-
-    Vector2Int? nearest = FindNearestValidCell(transform.position, snapSearchRadius);
-
-    if (nearest.HasValue)
+    void EnsureOnValidTile()
     {
-        Vector3 world = gm.GridToWorld(nearest.Value.x, nearest.Value.y);
-        world.y = 0f;
+        if (gm == null || gm.mapLayout == null)
+            return;
+
+        int rows = gm.mapLayout.GetLength(0);
+        int cols = gm.mapLayout.GetLength(1);
+
+        Vector3 p = transform.position;
+
+        p.x = Mathf.Clamp(p.x, 0f, cols - 1);
+        p.z = Mathf.Clamp(p.z, 0f, rows - 1);
 
         _controller.enabled = false;
-        transform.position = world;
+        transform.position = p;
         _controller.enabled = true;
-
-        _verticalVelocity = 0f;
     }
-}
 
-    // Returns true when world position maps inside grid bounds and to a valid tile (road or grass)
     private bool IsPositionOnMap(Vector3 worldPos)
     {
-        if (gm == null || gm.mapLayout == null) return true; // don't block when grid missing
+        if (gm == null || gm.mapLayout == null) return true;
 
         int rows = gm.mapLayout.GetLength(0);
         int cols = gm.mapLayout.GetLength(1);
@@ -224,55 +201,11 @@ public class PlayerMovement : MonoBehaviour
         if (gx < 0 || gx >= cols || gz < 0 || gz >= rows)
             return false;
 
-        // mapLayout uses 1 = road, 0 = grass — both allowed
+        // mapLayout uses 1 = road, 
         int val = gm.mapLayout[gz, gx];
-        return (val == 0 || val == 1);
+        return (val == 1);
     }
 
-    // BFS search for nearest valid cell (road or grass) within maxRadius tiles.
-    private Vector2Int? FindNearestValidCell(Vector3 worldPos, int maxRadius)
-    {
-        if (gm == null || gm.mapLayout == null) return null;
-
-        int rows = gm.mapLayout.GetLength(0);
-        int cols = gm.mapLayout.GetLength(1);
-
-        int startX = Mathf.RoundToInt(worldPos.x);
-        int startZ = Mathf.RoundToInt(worldPos.z);
-
-        Queue<Vector2Int> q = new Queue<Vector2Int>();
-        HashSet<Vector2Int> seen = new HashSet<Vector2Int>();
-
-        Vector2Int start = new Vector2Int(startX, startZ);
-        q.Enqueue(start);
-        seen.Add(start);
-
-        int[] dx = { 0, 0, 1, -1 };
-        int[] dz = { 1, -1, 0, 0 };
-
-        while (q.Count > 0)
-        {
-            Vector2Int cur = q.Dequeue();
-            int dist = Mathf.Abs(cur.x - startX) + Mathf.Abs(cur.y - startZ);
-            if (dist > maxRadius) continue;
-
-            if (cur.x >= 0 && cur.x < cols && cur.y >= 0 && cur.y < rows)
-            {
-                int v = gm.mapLayout[cur.y, cur.x];
-                if (v == 0 || v == 1)
-                    return cur;
-            }
-
-            for (int i = 0; i < 4; i++)
-            {
-                Vector2Int n = new Vector2Int(cur.x + dx[i], cur.y + dz[i]);
-                if (seen.Add(n))
-                    q.Enqueue(n);
-            }
-        }
-
-        return null;
-    }
     public void StopPlayer()
     {
         _currentSpeed = 0f;
