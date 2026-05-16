@@ -1,5 +1,4 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
@@ -71,6 +70,12 @@ public class PlayerMovement : MonoBehaviour
         if (keyboard.aKey.isPressed) input.x -= 1f;
         if (keyboard.dKey.isPressed) input.x += 1f;
 
+     
+        if (keyboard.upArrowKey.isPressed) input.y += 1f;
+        if (keyboard.downArrowKey.isPressed) input.y -= 1f;
+        if (keyboard.leftArrowKey.isPressed) input.x -= 1f;
+        if (keyboard.rightArrowKey.isPressed) input.x += 1f;
+
         bool isMoving = input.sqrMagnitude > 0.01f;
 
         if (_animator != null)
@@ -95,10 +100,9 @@ public class PlayerMovement : MonoBehaviour
             Vector3 currentPos = transform.position;
             Vector3 fullTarget = currentPos + intendedMovement;
 
-            // If full-target is valid -> allow
             if (IsPositionOnMap(fullTarget))
             {
-                // allowed
+              
             }
             else
             {
@@ -121,7 +125,7 @@ public class PlayerMovement : MonoBehaviour
                 }
                 else if (canX && canZ)
                 {
-                    // Prefer axis that aligns more with input
+                   
                     if (Mathf.Abs(intendedMovement.x) > Mathf.Abs(intendedMovement.z))
                     {
                         intendedMovement = new Vector3(intendedMovement.x, 0f, 0f);
@@ -135,7 +139,7 @@ public class PlayerMovement : MonoBehaviour
                 }
                 else
                 {
-                    // No valid movement — stop and go idle (user can change direction next frame)
+                    
                     intendedMovement = Vector3.zero;
                     _currentSpeed = 0f;
                     if (_animator != null)
@@ -144,7 +148,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Rotate smoothly toward the actual movement direction if any
+        
         if (intendedMovement.sqrMagnitude > 0.0001f)
         {
             float targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg;
@@ -201,7 +205,7 @@ public class PlayerMovement : MonoBehaviour
         if (gx < 0 || gx >= cols || gz < 0 || gz >= rows)
             return false;
 
-        // mapLayout uses 1 = road, 
+        // 1 = road, 
         int val = gm.mapLayout[gz, gx];
         return (val == 1);
     }
