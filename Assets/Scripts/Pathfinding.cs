@@ -107,13 +107,20 @@ public class Pathfinding : MonoBehaviour
             return null;
         }
 
+        Node startNode = GetNode(startX, startZ);
+        if (startNode == null)
+        {
+            Debug.LogWarning($"FindNearestTrap: startNode at ({startX},{startZ}) is null.");
+            return null;
+        }
+
         Node nearestTrap = null;
         int shortestLength = int.MaxValue;
 
         foreach (Vector2Int trapPos in trapPositions)
         {
             List<Node> path = FindPath(startX, startZ, trapPos.x, trapPos.y);
-            if (path != null && path.Count < shortestLength)
+            if (path != null && path.Count > 0 && path.Count < shortestLength)
             {
                 shortestLength = path.Count;
                 nearestTrap = GetNode(trapPos.x, trapPos.y);

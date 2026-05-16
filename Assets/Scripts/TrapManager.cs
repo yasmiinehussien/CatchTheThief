@@ -97,18 +97,23 @@ public class TrapManager : MonoBehaviour
     private GameObject detectiveObj;
     private GameObject glowLightObj;
 
+    private bool trapsHere = false;
+
     // ── Unity Lifecycle ──────────────────────────────────────────
     private void Start()
-{
-    gridManager = GridManager.Instance;
-    pathfinding = FindAnyObjectByType<Pathfinding>();
+    {
+    
+        Debug.Log($"TrapManager Start on {gameObject.name}");
 
-    if (treasureManager == null)
-        treasureManager = FindAnyObjectByType<TreasureManager>();
+            gridManager = GridManager.Instance;
+            pathfinding = FindAnyObjectByType<Pathfinding>();
 
-    // Delay so GridManager.BuildGrid() finishes first
-    StartCoroutine(PlaceTrapsAfterFragments());
-}
+        if (treasureManager == null)
+            treasureManager = FindAnyObjectByType<TreasureManager>();
+
+        // Delay so GridManager.BuildGrid() finishes first
+        StartCoroutine(PlaceTrapsAfterFragments());
+    }
     /*private void Awake()
     {
         gridManager = GridManager.Instance;
@@ -142,14 +147,23 @@ public class TrapManager : MonoBehaviour
     // ════════════════════════════════════════════════════════════
     private IEnumerator PlaceTrapsAfterFragments()
 {
-    // Wait for BOTH GridManager and TreasureManager to be ready
-    yield return new WaitUntil(() => 
+        Debug.Log("Coroutine started");
+
+        // Wait for BOTH GridManager and TreasureManager to be ready
+        yield return new WaitUntil(() => 
         GridManager.Instance != null && 
         GridManager.Instance.grid != null &&
         treasureManager != null &&
-        treasureManager.SpawnedCount > 0);
+        treasureManager.SpawnedCount >0);
 
-    gridManager = GridManager.Instance; // re-grab after waiting
+        if (trapsHere)
+            yield break;
+
+        trapsHere = true;
+
+        Debug.Log("Calling PlaceTraps");
+
+        gridManager = GridManager.Instance; // re-grab after waiting
     PlaceTraps();
 }
 
@@ -161,6 +175,9 @@ public class TrapManager : MonoBehaviour
 
     private void PlaceTraps()
     {
+        Debug.Log("PlaceTraps called from:\n" + System.Environment.StackTrace);
+
+ 
         if (gridManager == null || gridManager.grid == null)
         {
             Debug.LogError("TrapManager: GridManager not ready.");
@@ -307,13 +324,25 @@ public class TrapManager : MonoBehaviour
 
     private void TryActivateMemoryFlash()
     {
-            if (flashInProgress)
-    {
-        Debug.Log("Flash already in progress — ignoring input.");
-        return;
-    }
+        if (flashInProgress)
+        {
+              Debug.Log("Flash already in progress — ignoring input.");
+              return;
+        }
 
-   
+        // Find player here if not assigned
+        //if (playerTransform == null)
+        //{
+        //    GameObject playerObj = GameObject.FindWithTag("Player");
+        //    if (playerObj != null)
+        //        playerTransform = playerObj.transform;
+        //}
+
+        //if (playerTransform == null)
+        //{
+        //    Debug.LogWarning("TrapManager: Player not found.");
+        //    return;
+        //}
 
         if (treasureManager == null) return;
 
