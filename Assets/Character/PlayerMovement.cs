@@ -60,6 +60,8 @@ public class PlayerMovement : MonoBehaviour
         if (hasWon)
             return;
 
+        if (!_controller.enabled) return;
+
         var keyboard = Keyboard.current;
         if (keyboard == null) return;
 
@@ -166,6 +168,8 @@ public class PlayerMovement : MonoBehaviour
 
     void ApplyGravity()
     {
+        if (!_controller.enabled) return;
+
         if (_controller.isGrounded && _verticalVelocity < 0f)
             _verticalVelocity = -2f;
 
